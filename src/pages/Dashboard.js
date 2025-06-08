@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase"; // ✅ added db import here
+import React, { useEffect, useState, useContext } from "react"; // ✅ Added useContext
+import { auth, db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Line } from "react-chartjs-2";
 import {
@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { UserContext } from "../context/UserContext"; // ✅ Added UserContext import
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
@@ -35,14 +36,14 @@ function formatDate(date) {
 }
 
 export default function Dashboard() {
+  const { user, userData } = useContext(UserContext); // ✅ Added UserContext to get user and userData
   const [deposits, setDeposits] = useState([]);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDeposits = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+      if (!user) return; // ✅ Use user from UserContext instead of auth.currentUser
 
       const q = query(collection(db, "deposits"), where("userId", "==", user.uid));
       const snapshot = await getDocs(q);
@@ -98,13 +99,16 @@ export default function Dashboard() {
     };
 
     fetchDeposits();
-  }, []);
+  }, [user]); // ✅ Added user as a dependency
 
-  if (loading) return <div className="p-6 text-center">Loading your dashboard...</div>;
+  if (loading || !userData) return <div className="p-6 text-center">Loading your dashboard...</div>; // ✅ Updated loading condition to include userData
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">📊 Investment Dashboard</h1>
+      {/* ✅ Added welcome message using userData.name */}
+      <h1 className="text-2xl font-bold mb-6">
+        📊 Investment Dashboard - Welcome, {userData.name || 'User'}!
+      </h1>
 
       {chartData && (
         <div className="bg-white p-4 mb-8 shadow rounded">
