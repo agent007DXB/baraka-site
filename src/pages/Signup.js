@@ -1,7 +1,5 @@
-// src/pages/Signup.js
-
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { db, auth } from '../firebase';
 
@@ -16,14 +14,19 @@ export default function Signup() {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
 
-      // ✅ Save user profile to Firestore
+      // ✅ Set display name in Firebase Auth
+      await updateProfile(res.user, {
+        displayName: name,
+      });
+
+      // ✅ Save user data in Firestore
       await setDoc(doc(db, "users", res.user.uid), {
         name,
         email,
         role: "user",
       });
 
-      // ✅ Redirect only after Firestore write completes
+      // ✅ Redirect to profile after successful save
       window.location.href = "/profile";
     } catch (err) {
       setMessage(err.message);
