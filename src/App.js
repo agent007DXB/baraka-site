@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -17,10 +16,8 @@ import Investments from "./pages/Investments";
 import KYCUpload from "./components/KYCUpload";
 import PrivateRoute from "./components/PrivateRoute";
 import WithdrawRequest from "./pages/WithdrawRequest";
-import Profile from "./pages/Profile"; // ✅ make sure it's imported
-
-
-
+import Profile from "./pages/Profile";
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 
 export default function App() {
   return (
@@ -32,52 +29,53 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
-
-            <Route path="/dashboard" element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } />
-            <Route path="/deposit" element={
-              <PrivateRoute>
-                <Deposit />
-              </PrivateRoute>
-            } />
-            <Route path="/investments" element={
-              <PrivateRoute>
-                <Investments />
-              </PrivateRoute>
-            } />
-            <Route path="/profile" element={
-              <PrivateRoute>
-                <UserProfile />
-              </PrivateRoute>
-            } />
-
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/deposit"
+              element={
+                <PrivateRoute>
+                  <Deposit />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/investments"
+              element={
+                <PrivateRoute>
+                  <Investments />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <UserProfile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminDashboard />
+                </ProtectedAdminRoute>
+              }
+            />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
             <Route path="/kyc-upload" element={<KYCUpload />} />
             <Route path="/withdraw" element={<WithdrawRequest />} />
-            import Profile from "./pages/Profile"; // ✅ make sure it's imported
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import AdminDashboard from "./pages/AdminDashboard";
-
-// ...inside <Routes>
-<Route
-  path="/admin"
-  element={
-    <ProtectedAdminRoute>
-      <AdminDashboard />
-    </ProtectedAdminRoute>
-  }
-/>
-
-
-<Route path="/profile" element={<Profile />} />
-
-
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </main>
         <Footer />
