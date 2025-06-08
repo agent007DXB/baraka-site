@@ -13,12 +13,15 @@ export default function Signup() {
     e.preventDefault();
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
+
       await setDoc(doc(db, "users", res.user.uid), {
         name,
         email,
         role: "user",
       });
-      setMessage("Account created! You can now log in.");
+
+      // ✅ Redirect to profile after saving
+      window.location.href = "/profile";
     } catch (err) {
       setMessage(err.message);
     }
