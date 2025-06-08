@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ensure .container is always padded on small screens */
+.container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
