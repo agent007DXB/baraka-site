@@ -1,9 +1,11 @@
+// src/pages/Profile.js
 import { useEffect, useState } from "react";
 import { db, auth } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Profile() {
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -12,15 +14,29 @@ export default function Profile() {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async () => {
-    if (!user) return;
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setUserData(docSnap.data());
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserData({
+            name: data.name || "",
+            email: currentUser.email,
+            phone: data.phone || "",
+            address: data.address || ""
+          });
+        } else {
+          setUserData({ name: "", email: currentUser.email, phone: "", address: "" });
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
@@ -32,10 +48,6 @@ export default function Profile() {
     await setDoc(docRef, { ...userData, email: user.email }, { merge: true });
     alert("Profile updated ✅");
   };
-
-  useEffect(() => {
-    fetchProfile();
-  }, [user]);
 
   if (loading) return <p className="text-center mt-10">Loading profile...</p>;
 
