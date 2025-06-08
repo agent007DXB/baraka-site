@@ -58,10 +58,22 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/kyc-upload" element={<KYCUpload />} />
             <Route path="/withdraw" element={<WithdrawRequest />} />
             import Profile from "./pages/Profile"; // ✅ make sure it's imported
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+import AdminDashboard from "./pages/AdminDashboard";
+
+// ...inside <Routes>
+<Route
+  path="/admin"
+  element={
+    <ProtectedAdminRoute>
+      <AdminDashboard />
+    </ProtectedAdminRoute>
+  }
+/>
+
 
 <Route path="/profile" element={<Profile />} />
 
