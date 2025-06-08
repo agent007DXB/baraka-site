@@ -14,23 +14,31 @@ export default function Profile() {
   });
   const [loading, setLoading] = useState(true);
 
+  // Wait for auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        const docRef = doc(db, "users", currentUser.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+
+        const docRef = doc(db, "users", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setUserData({
-            name: data.name || "",
-            email: currentUser.email,
-            phone: data.phone || "",
-            address: data.address || ""
-          });
-        } else {
-          setUserData({ name: "", email: currentUser.email, phone: "", address: "" });
-        }
+
+        const firestoreData = docSnap.exists() ? docSnap.data() : {};
+
+        setUserData({
+          name: firestoreData.name || "",
+          email: firebaseUser.email,
+          phone: firestoreData.phone || "",
+          address: firestoreData.address || ""
+        });
+      } else {
+        setUser(null);
+        setUserData({
+          name: "",
+          email: "",
+          phone: "",
+          address: ""
+        });
       }
       setLoading(false);
     });
@@ -44,12 +52,17 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user) return;
-    const docRef = doc(db, "users", user.uid);
-    await setDoc(docRef, { ...userData, email: user.email }, { merge: true });
+    await setDoc(doc(db, "users", user.uid), {
+      name: userData.name,
+      phone: userData.phone,
+      address: userData.address,
+      email: user.email
+    }, { merge: true });
+
     alert("Profile updated ✅");
   };
 
-  if (loading) return <p className="text-center mt-10">Loading profile...</p>;
+  if (loading) return <div className="text-center mt-10">Loading profile...</div>;
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
