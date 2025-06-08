@@ -14,32 +14,36 @@ export default function Profile() {
   });
   const [loading, setLoading] = useState(true);
 
-  // Wait for auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
+      if (!firebaseUser) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-        const docRef = doc(db, "users", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
+      setUser(firebaseUser);
+      const docRef = doc(db, "users", firebaseUser.uid);
+      const docSnap = await getDoc(docRef);
 
-        const firestoreData = docSnap.exists() ? docSnap.data() : {};
-
+      if (docSnap.exists()) {
+        const data = docSnap.data();
         setUserData({
-          name: firestoreData.name || "",
+          name: data.name || "",
           email: firebaseUser.email,
-          phone: firestoreData.phone || "",
-          address: firestoreData.address || ""
+          phone: data.phone || "",
+          address: data.address || ""
         });
       } else {
-        setUser(null);
+        // If no profile exists, show auth email only
         setUserData({
           name: "",
-          email: "",
+          email: firebaseUser.email,
           phone: "",
           address: ""
         });
       }
+
       setLoading(false);
     });
 
@@ -52,17 +56,21 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user) return;
-    await setDoc(doc(db, "users", user.uid), {
-      name: userData.name,
-      phone: userData.phone,
-      address: userData.address,
-      email: user.email
-    }, { merge: true });
-
-    alert("Profile updated ✅");
+    const docRef = doc(db, "users", user.uid);
+    await setDoc(
+      docRef,
+      {
+        name: userData.name,
+        phone: userData.phone,
+        address: userData.address,
+        email: user.email,
+      },
+      { merge: true }
+    );
+    alert("✅ Profile updated successfully");
   };
 
-  if (loading) return <div className="text-center mt-10">Loading profile...</div>;
+  if (loading) return <p className="text-center mt-10">Loading profile...</p>;
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
