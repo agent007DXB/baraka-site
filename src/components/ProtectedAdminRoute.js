@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
 
-const adminEmails = ["cyberjunkeez.org@gmail.com"]; // ✅ Add your admin emails here
+// ✅ Add your admin email here
+const adminEmails = ["cyberjunkeez.org@gmail.com"];
 
 export default function ProtectedAdminRoute({ children }) {
   const [loading, setLoading] = useState(true);
