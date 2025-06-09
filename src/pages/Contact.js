@@ -4,7 +4,7 @@ export default function Contact() {
         <h1 className="text-2xl font-bold mb-4 text-center">Contact Us</h1>
         <p>Email: support@barakainvestment.com</p>
         <p>Phone: +1-206-414-1863</p>
-        <p>Address: Baraka HQ, Business Tower, Mumbai, India</p>
+        <p>Address: Baraka HQ, Business Tower, Bay Area, Dubai, UAE</p>
       </div>
     );
   }
