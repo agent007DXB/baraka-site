@@ -1,3 +1,4 @@
+
 // src/pages/AdminDashboard.js
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
@@ -73,7 +74,14 @@ export default function AdminDashboard() {
               <tr>
                 <th className="p-2 border">User ID</th>
                 <th className="p-2 border">Email</th>
-                <th className="p-2 border">KYC Status</th>
+                <th className="p-2 border">Address</th>
+                <th className="p-2 border">Occupation</th>
+                <th className="p-2 border">Phone</th>
+                <th className="p-2 border">DOB</th>
+                <th className="p-2 border">Nationality</th>
+                <th className="p-2 border">Income</th>
+                <th className="p-2 border">KYC File</th>
+                <th className="p-2 border">Status</th>
                 <th className="p-2 border">Actions</th>
               </tr>
             </thead>
@@ -82,6 +90,26 @@ export default function AdminDashboard() {
                 <tr key={user.id}>
                   <td className="p-2 border">{user.id}</td>
                   <td className="p-2 border">{user.email}</td>
+                  <td className="p-2 border">{user.address || '-'}</td>
+                  <td className="p-2 border">{user.occupation || '-'}</td>
+                  <td className="p-2 border">{user.phone || '-'}</td>
+                  <td className="p-2 border">{user.dob || '-'}</td>
+                  <td className="p-2 border">{user.nationality || '-'}</td>
+                  <td className="p-2 border">{user.income || '-'}</td>
+                  <td className="p-2 border">
+                    {user.kycUrl ? (
+                      <a
+                        href={user.kycUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        View
+                      </a>
+                    ) : (
+                      'No File'
+                    )}
+                  </td>
                   <td className="p-2 border capitalize">{user.kycStatus || 'pending'}</td>
                   <td className="p-2 border space-x-2">
                     <button
