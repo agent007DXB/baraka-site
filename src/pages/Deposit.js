@@ -1,95 +1,149 @@
-import React, { useState } from 'react';
-import { db, auth } from '../firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import React, { useState } from "react";
+import { db, auth } from "../firebase";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 
 export default function Deposit() {
-  const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('bank');
-  const [showDetails, setShowDetails] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState("");
+  const [proofFile, setProofFile] = useState(null);
+  const [status, setStatus] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const CLOUDINARY_UPLOAD_PRESET = "baraka_uploads";
+  const CLOUDINARY_CLOUD_NAME = "db7hngfzu";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!method || !amount) return alert("Please fill in all fields");
 
     try {
-      await addDoc(collection(db, 'deposits'), {
+      setStatus("processing");
+
+      let proofURL = "";
+
+      if (proofFile) {
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("file", proofFile);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        formData.append("folder", "deposits");
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        proofURL = data.secure_url;
+        setUploading(false);
+      }
+
+      await addDoc(collection(db, "deposits"), {
         amount: parseFloat(amount),
         method,
         date: Timestamp.now(),
-        userId: auth.currentUser?.uid || 'guest'
+        userId: auth.currentUser?.uid || "guest",
+        status: "processing",
+        proofURL
       });
 
-      alert('Deposit recorded successfully!');
-      setShowDetails(true); // show payment instructions after submit
+      alert("✅ Deposit submitted successfully!");
+      setAmount("");
+      setMethod("");
+      setProofFile(null);
+      setStatus("processing");
     } catch (error) {
-      console.error('Error adding deposit:', error);
-      alert('Error recording deposit.');
+      console.error("Upload Error:", error);
+      alert("❌ Failed to submit deposit.");
+      setUploading(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Deposit Funds</h1>
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-6">
+      <h2 className="text-2xl font-bold mb-4">💰 Deposit Funds</h2>
+      <p className="mb-4 text-gray-600">
+        Please select a payment method, transfer funds, then upload your deposit proof.
+      </p>
 
-      <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-4">
-        <div>
-          <label className="block font-semibold mb-1">Amount:</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-            required
-            min={1}
-            placeholder="Enter deposit amount"
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Enter amount"
+          className="w-full p-2 border rounded"
+          required
+        />
+
+        <div className="space-y-2">
+          <label className="block font-semibold">Payment Method:</label>
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="method"
+              value="bank"
+              onChange={(e) => setMethod(e.target.value)}
+              checked={method === "bank"}
+            />
+            <span>🏦 Bank Transfer</span>
+          </label>
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="method"
+              value="crypto"
+              onChange={(e) => setMethod(e.target.value)}
+              checked={method === "crypto"}
+            />
+            <span>💸 Crypto (USDT)</span>
+          </label>
         </div>
 
+        {method === "bank" && (
+          <div className="bg-gray-100 p-3 rounded">
+            <p><strong>Bank Name:</strong> ABC Bank</p>
+            <p><strong>Account Number:</strong> 123456789</p>
+            <p><strong>IFSC:</strong> ABCD12345</p>
+            <p><strong>Account Name:</strong> Baraka Investments</p>
+          </div>
+        )}
+
+        {method === "crypto" && (
+          <div className="bg-gray-100 p-3 rounded">
+            <p><strong>USDT (TRC20):</strong> T9zS1eQyWz1Ez6gX2f29Wxyz5sdqPq</p>
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=T9zS1eQyWz1Ez6gX2f29Wxyz5sdqPq"
+              alt="QR Code"
+              className="mt-2"
+            />
+          </div>
+        )}
+
         <div>
-          <label className="block font-semibold mb-1">Method:</label>
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-          >
-            <option value="bank">Bank Transfer</option>
-            <option value="crypto">Crypto (USDT)</option>
-          </select>
+          <label className="block font-semibold mb-1">Upload Proof (image/PDF):</label>
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={(e) => setProofFile(e.target.files[0])}
+            className="w-full border p-2 rounded"
+          />
         </div>
 
         <button
           type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          disabled={uploading}
+          className={`bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          Submit Deposit
+          {uploading ? "Uploading..." : "Submit Deposit"}
         </button>
+
+        {status && (
+          <div className="mt-4 text-yellow-600">
+            🕐 Status: <strong>{status}</strong>
+          </div>
+        )}
       </form>
-
-      {showDetails && (
-        <div className="mt-6 bg-blue-50 border border-blue-200 p-4 rounded">
-          <h2 className="text-lg font-semibold mb-2">Payment Instructions</h2>
-
-          {method === 'bank' ? (
-            <div>
-              <p><strong>Bank Name:</strong> Baraka National Bank</p>
-              <p><strong>Account Number:</strong> 12534446654</p>
-              <p><strong>IFSC Code:</strong> BNB0001234</p>
-              <p><strong>Account Holder:</strong> Baraka Investment</p>
-            </div>
-          ) : (
-            <div>
-              <p><strong>USDT Wallet Address (TRC20):</strong></p>
-              <p className="break-all bg-gray-100 p-2 rounded text-sm">
-                TYxqv8j9Ft2zbnQwYDUeB7gUAMhFqwGr67
-              </p>
-            </div>
-          )}
-
-          <p className="mt-4 text-sm text-gray-600">
-            After sending the amount, please wait for admin verification.
-            Your deposit will be activated within 1–4 hours.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
