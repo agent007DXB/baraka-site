@@ -50,10 +50,21 @@ export default function AdminDashboard() {
     );
   };
 
+  const handleDepositStatus = async (depositId, newStatus) => {
+    const depositRef = doc(db, 'deposits', depositId);
+    await updateDoc(depositRef, { status: newStatus });
+    setDeposits(prev =>
+      prev.map(dep =>
+        dep.id === depositId ? { ...dep, status: newStatus } : dep
+      )
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
+      {/* KYC Section */}
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-3">🧾 User KYC Approvals</h2>
         <div className="overflow-x-auto">
@@ -93,8 +104,9 @@ export default function AdminDashboard() {
         </div>
       </section>
 
+      {/* Deposit Section */}
       <section>
-        <h2 className="text-xl font-semibold mb-3">💰 All Deposits</h2>
+        <h2 className="text-xl font-semibold mb-3">💰 Deposit Requests</h2>
         <div className="overflow-x-auto">
           <table className="w-full border table-auto text-sm">
             <thead className="bg-gray-100">
@@ -103,20 +115,49 @@ export default function AdminDashboard() {
                 <th className="p-2 border">Amount</th>
                 <th className="p-2 border">Method</th>
                 <th className="p-2 border">Date</th>
-                <th className="p-2 border">Daily Return</th>
+                <th className="p-2 border">Proof</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Actions</th>
               </tr>
             </thead>
             <tbody>
               {deposits.map((dep) => {
                 const vip = dep.amount < 500 ? 0.2 : dep.amount <= 2000 ? 0.3 : 0.4;
-                const dailyReturn = dep.amount * vip;
                 return (
                   <tr key={dep.id}>
                     <td className="p-2 border">{dep.userId}</td>
                     <td className="p-2 border">${dep.amount}</td>
                     <td className="p-2 border">{dep.method}</td>
                     <td className="p-2 border">{dep.date.toDate().toLocaleDateString()}</td>
-                    <td className="p-2 border">${Math.round(dailyReturn)}</td>
+                    <td className="p-2 border">
+                      {dep.proofURL ? (
+                        <a
+                          href={dep.proofURL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        'No Proof'
+                      )}
+                    </td>
+                    <td className="p-2 border capitalize">{dep.status}</td>
+                    <td className="p-2 border space-x-2">
+                      <button
+                        onClick={() => handleDepositStatus(dep.id, 'confirmed')}
+                        className="bg-green-600 text-white px-2 py-1 rounded"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleDepositStatus(dep.id, 'rejected')}
+                        className="bg-red-600 text-white px-2 py-1 rounded"
+                      >
+                        Reject
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
