@@ -1,11 +1,10 @@
-// src/pages/Profile.js
 import { useEffect, useState } from "react";
 import { db, auth } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { Link } from "react-router-dom";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
+  const user = auth.currentUser;
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -14,41 +13,15 @@ export default function Profile() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      setUser(firebaseUser);
-      const docRef = doc(db, "users", firebaseUser.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setUserData({
-          name: data.name || "",
-          email: firebaseUser.email,
-          phone: data.phone || "",
-          address: data.address || ""
-        });
-      } else {
-        // If no profile exists, show auth email only
-        setUserData({
-          name: "",
-          email: firebaseUser.email,
-          phone: "",
-          address: ""
-        });
-      }
-
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const fetchProfile = async () => {
+    if (!user) return;
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setUserData(docSnap.data());
+    }
+    setLoading(false);
+  };
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
@@ -57,18 +30,13 @@ export default function Profile() {
   const handleSave = async () => {
     if (!user) return;
     const docRef = doc(db, "users", user.uid);
-    await setDoc(
-      docRef,
-      {
-        name: userData.name,
-        phone: userData.phone,
-        address: userData.address,
-        email: user.email,
-      },
-      { merge: true }
-    );
-    alert("✅ Profile updated successfully");
+    await setDoc(docRef, { ...userData, email: user.email }, { merge: true });
+    alert("Profile updated ✅");
   };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [user]);
 
   if (loading) return <p className="text-center mt-10">Loading profile...</p>;
 
@@ -103,6 +71,12 @@ export default function Profile() {
         >
           Save Changes
         </button>
+
+        <Link to="/verify">
+          <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mt-4">
+            ✅ Verify Your Account
+          </button>
+        </Link>
       </div>
     </div>
   );
