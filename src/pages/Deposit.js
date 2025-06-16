@@ -102,10 +102,9 @@ export default function Deposit() {
 
         {method === "bank" && (
           <div className="bg-gray-100 p-3 rounded">
-            <p><strong>Bank Name:</strong> ABC Bank</p>
-            <p><strong>Account Number:</strong> 123456789</p>
-            <p><strong>IFSC:</strong> ABCD12345</p>
-            <p><strong>Account Name:</strong> Baraka Investments</p>
+            <p><strong>Bank Name:</strong> Bank of Muscut</p>
+            <p><strong>Account Name:</strong> Anil Kumar</p>
+            <p><strong>Account Number:</strong> 0373056392250013</p>
           </div>
         )}
 
